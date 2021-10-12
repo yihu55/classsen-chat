@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>classens chatroom</title>
+</head>
+
+<body>
+    <ul id="messageList">
+
+    </ul>
+    <div>
+        <label for="author">Author </label>
+        <input id="author" />
+        <label for="message">Message </label>
+        <input id="message" />
+        <button onclick="handleOnClick()">Send</button>
+        <button onclick="getMessageList()">Refresh</button>
+    </div>
+    <label for="chatroom">chose a room</label>
+    <select name="chatroom" id="chatroom"></select>
+    <button id="chatroomEntry">entry</button>
+</body>
+<script>
+    let username = "yi"
+    let enskildURL = `https://mock-data-api.firebaseio.com/webb21-chats/${username}/messages.json`
+    const classURL = "https://mock-data-api.firebaseio.com/webb21-chats.json"
+    const wrapper = document.getElementById("messageList")
+    const select = document.getElementById("chatroom")
+
+
+    function getMessagesData() {
+        fetch(enskildURL)
+            .then(response => response.json())
+            .then(data => {
+                renderMessagesList(data)
+            })
+    }
+
+    function renderMessagesList(data) {
+        wrapper.innerHTML = ""
+        Object.entries(data).forEach(message => {
+            message = message[1]
+            console.log(message)
+            renderMessagesItem(message)
+        });
+    }
+
+    function renderMessagesItem(message) {
+        const p = document.createElement("li")
+        p.innerText = `${message.message} -by ${message.author}`
+        wrapper.appendChild(p)
+
+    }
+
+
+    function handleOnClick() {
+        const messageInput = document.getElementById("message")
+        const authorInput = document.getElementById("author")
+        message = messageInput.value
+        author = authorInput.value
+        sendMessage(message, author)
+    }
+
+    function sendMessage(message, author) {
+        const payload = {
+            message: message,
+            author: author
+        }
+        fetch(enskildURL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                getMessagesData()
+            })
+    }
+
+    function createOptions() {
+
+        fetch(classURL)
+            .then(res => res.json())
+            .then(data => Object.entries(data).forEach(chatroom => {
+                //const select = document.getElementById("chatroom") //get container for alla chatroom
+                const option = document.createElement("option") //create chatroom options
+                const name = chatroom[0] //chatrooms name ==data.chatroom.index0
+                option.innerHTML = `${name}`
+                select.appendChild(option)
+
+            }))
+    }
+    const entry = document.getElementById("chatroomEntry")
+    entry.addEventListener("click", function() {
+        username = select.value
+        console.log(username)
+            //wrapper.innerHTML = ""
+        enskildURL = `https://mock-data-api.firebaseio.com/webb21-chats/${username}/messages.json`
+        getMessagesData()
+
+    })
+    getMessagesData()
+    createOptions()
+</script>
+
+</html>
